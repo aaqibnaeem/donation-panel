@@ -4,9 +4,11 @@ import { Button, Layout, Menu, theme } from "antd";
 import { MenuOutlined, LogoutOutlined } from "@ant-design/icons";
 import { BsPostcard } from "react-icons/bs";
 import { FaRegCalendarCheck } from "react-icons/fa";
+import { LuMenuSquare } from "react-icons/lu";
 import Post from "./Post";
-import { Image, Stack, Text } from "@chakra-ui/react";
+import { HStack, Image, Text } from "@chakra-ui/react";
 import Logo from "../assets/Logo.png";
+import Requests from "./Requests";
 
 const { Header, Sider, Content } = Layout;
 
@@ -25,15 +27,13 @@ const Dashboard: React.FC = () => {
           style={{
             height: "64px",
             color: "white",
+            fontSize: 20,
             display: "flex",
-            alignItems: "center",
             justifyContent: "center",
-            fontWeight: "bold",
-            fontSize: collapsed ? 24 : 16,
+            alignItems: "center",
           }}
         >
-          {/* {collapsed ? "SMIT" : "SMIT-Donation App"} */}
-          <Image src={Logo} w="30%" objectFit={"contain"} />
+          {collapsed ? <LuMenuSquare /> : <Text>Menu</Text>}
         </div>
         <Menu
           theme="dark"
@@ -83,11 +83,12 @@ const Dashboard: React.FC = () => {
               }}
               className="d-flex align-items-center justify-content-center"
             />
-            <Stack w="full">
+            <HStack w="full">
+              <Image src={Logo} width={50} objectFit={"contain"} />
               <Text fontWeight="bold" fontSize="20px">
                 Saylani Mass IT Training
               </Text>
-            </Stack>
+            </HStack>
             <Button
               type="text"
               icon={<LogoutOutlined />}
@@ -110,7 +111,7 @@ const Dashboard: React.FC = () => {
           <Routes>
             <Route path="/" element={<Post />} />
             <Route path="post" element={<Post />} />
-            <Route path="requests" element={<div>Requests</div>} />
+            <Route path="requests" element={<Requests />} />
           </Routes>
         </Content>
       </Layout>

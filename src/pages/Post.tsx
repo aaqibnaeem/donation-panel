@@ -1,21 +1,30 @@
 import React, { useEffect, useState } from "react";
+import { HStack, Heading, Stack, Text, VStack } from "@chakra-ui/react";
+import { Button, Input, Table, message } from "antd";
+import Column from "antd/es/table/Column";
+import { PostInterface } from "../interfaces/interfaces";
+import { db } from "../config/firebaseConfig";
 import {
   collection,
   setDoc,
   doc,
   getDocs,
   deleteDoc,
+  updateDoc,
 } from "firebase/firestore";
-import { db } from "../config/firebaseConfig";
-import { HStack, Heading, Stack, VStack } from "@chakra-ui/react";
-import { Button, Input, Table, message } from "antd";
-import { PostInterface } from "../interfaces/interfaces";
-import Column from "antd/es/table/Column";
+import CustomModal from "../components/CustomModal";
+
 const { TextArea } = Input;
 
 const Post: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [posts, setPosts] = useState<PostInterface[]>();
+  const [visible, setVisible] = useState<boolean>(false);
+  const [isUpdating, setIsUpdating] = useState<boolean>(false);
+  const [editObj, setEditObj] = useState<PostInterface>({
+    title: "",
+    description: "",
+  });
   const [postObj, setPostObj] = useState<PostInterface>({
     title: "",
     description: "",
@@ -26,13 +35,14 @@ const Post: React.FC = () => {
   }, []);
   const fetchPosts = async () => {
     await getDocs(collection(db, "posts")).then((res) => {
-      const data: PostInterface[] = res.docs.map((doc) => ({
-        ...doc.data().post,
-        id: doc.id,
+      const data = res.docs.map((doc) => ({
+        ...doc.data(),
       }));
-      setPosts(data);
+      console.log(data);
+      setPosts(data as PostInterface[]);
     });
   };
+
   const handlePost = async () => {
     if (postObj.title === "" || postObj.description === "") {
       message.error({
@@ -47,19 +57,27 @@ const Post: React.FC = () => {
       const newDocId = newDocRef.id;
 
       const postData = {
+        ...postObj,
         id: newDocId,
-        post: { ...postObj, created_at: new Date() },
+        created_at: new Date(),
       };
 
       await setDoc(newDocRef, postData).then(() => {
         setIsLoading(false);
         setPostObj({ title: "", description: "" });
+        fetchPosts();
       });
     } catch (error) {
       console.error("Error adding document: ", error);
       setIsLoading(false);
     }
   };
+
+  const handleEdit = async (values: PostInterface) => {
+    setEditObj(values);
+    setVisible(true);
+  };
+
   return (
     <HStack>
       <Stack h="90vh" w="30%" p={30} gap={10}>
@@ -117,17 +135,23 @@ const Post: React.FC = () => {
               render={(itm) => (
                 <VStack>
                   <Button
-                    onClick={() => console.log(itm.id)}
                     type="dashed"
                     style={{ width: "100%" }}
+                    onClick={() => {
+                      handleEdit(itm);
+                    }}
                   >
                     Edit
                   </Button>
                   <Button
                     onClick={() => {
-                      deleteDoc(doc(db, "posts", itm.id)).then(() =>
-                        console.log("Deleted")
-                      );
+                      deleteDoc(doc(db, "posts", itm.id)).then(() => {
+                        message.success({
+                          type: "success",
+                          content: "Successfully deleted",
+                        });
+                        fetchPosts();
+                      });
                     }}
                     danger
                     style={{ width: "100%" }}
@@ -140,6 +164,57 @@ const Post: React.FC = () => {
           </Table>
         </Stack>
       </Stack>
+      <CustomModal
+        isVisible={visible}
+        title="Edit post"
+        handleCancel={() => setVisible(false)}
+        handleOk={async () => {
+          setIsUpdating(true);
+          const updateRef = doc(db, "posts", editObj.id!);
+          await updateDoc(updateRef, {
+            title: editObj.title,
+            description: editObj.description,
+          })
+            .then(() => {
+              message.success({
+                type: "success",
+                content: "Successfully updated",
+              });
+              setIsUpdating(false);
+              setVisible(false);
+              fetchPosts();
+            })
+            .catch(() => {
+              message.error({
+                type: "error",
+                content: "Error occured in updatin.",
+              });
+              setIsUpdating(false);
+              setVisible(false);
+              fetchPosts();
+            });
+        }}
+        isLoading={isUpdating}
+        children={
+          <VStack w="full" align="start" gap={10} mt={20}>
+            <Text m={0}>Title</Text>
+            <Input
+              value={editObj?.title}
+              onChange={(e) =>
+                setEditObj({ ...editObj, title: e.target.value })
+              }
+            />
+
+            <Text m={0}>Title</Text>
+            <TextArea
+              value={editObj?.description}
+              onChange={(e) =>
+                setEditObj({ ...editObj, description: e.target.value })
+              }
+            />
+          </VStack>
+        }
+      />
     </HStack>
   );
 };
