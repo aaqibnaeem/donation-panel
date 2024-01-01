@@ -5,6 +5,10 @@ export interface PostInterface {
   description: string;
   id?: string;
   created_at?: string;
+  imageUrl?: string;
+  videoUrl?: string;
+  type?: "regular" | "video";
+  videoID?: string;
 }
 
 export interface RequestInterface {

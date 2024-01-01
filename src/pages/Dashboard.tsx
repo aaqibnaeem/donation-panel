@@ -1,14 +1,17 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Routes, Route, useNavigate } from "react-router-dom";
-import { Button, Layout, Menu, theme } from "antd";
+import { Button, Layout, Menu, message, theme } from "antd";
 import { MenuOutlined, LogoutOutlined } from "@ant-design/icons";
 import { BsPostcard } from "react-icons/bs";
 import { FaRegCalendarCheck } from "react-icons/fa";
 import { LuMenuSquare } from "react-icons/lu";
-import Post from "./Post";
 import { HStack, Image, Text } from "@chakra-ui/react";
 import Logo from "../assets/Logo.png";
-import Requests from "./Requests";
+import { MdOutlinePrivacyTip } from "react-icons/md";
+import { signOut } from "firebase/auth";
+import { auth } from "../config/firebaseConfig";
+import { FcAbout, FcInfo } from "react-icons/fc";
+import { About, Post, Privacy, Requests, TermsAndConditions } from ".";
 
 const { Header, Sider, Content } = Layout;
 
@@ -20,6 +23,26 @@ const Dashboard: React.FC = () => {
     token: { colorBgContainer },
   } = theme.useToken();
 
+  useEffect(() => {
+    const checkUser = localStorage.getItem("email");
+    if (!checkUser) {
+      navigate("/", { replace: true });
+    }
+  });
+
+  const handleLogout = () => {
+    signOut(auth)
+      .then(() => {
+        localStorage.removeItem("email");
+        navigate("/", { replace: true });
+      })
+      .catch(() => {
+        message.error({
+          type: "error",
+          content: "Error in signing out ",
+        });
+      });
+  };
   return (
     <Layout>
       <Sider style={{ height: "100vh" }} collapsed={collapsed}>
@@ -51,6 +74,24 @@ const Dashboard: React.FC = () => {
               icon: <FaRegCalendarCheck />,
               label: "Requests",
               onClick: () => navigate("requests"),
+            },
+            {
+              key: "3",
+              icon: <MdOutlinePrivacyTip />,
+              label: "Privacy",
+              onClick: () => navigate("privacy"),
+            },
+            {
+              key: "4",
+              icon: <FcAbout />,
+              label: "Terms and conditions",
+              onClick: () => navigate("terms-and-conditions"),
+            },
+            {
+              key: "5",
+              icon: <FcInfo />,
+              label: "About",
+              onClick: () => navigate("about"),
             },
           ]}
         />
@@ -92,7 +133,7 @@ const Dashboard: React.FC = () => {
             <Button
               type="text"
               icon={<LogoutOutlined />}
-              // onClick={logOut}
+              onClick={handleLogout}
               style={{
                 fontSize: "16px",
                 width: 40,
@@ -112,6 +153,12 @@ const Dashboard: React.FC = () => {
             <Route path="/" element={<Post />} />
             <Route path="post" element={<Post />} />
             <Route path="requests" element={<Requests />} />
+            <Route path="privacy" element={<Privacy />} />
+            <Route
+              path="terms-and-conditions"
+              element={<TermsAndConditions />}
+            />
+            <Route path="about" element={<About />} />
           </Routes>
         </Content>
       </Layout>

@@ -57,7 +57,6 @@ const Requests: React.FC = () => {
               dataIndex="approved"
               title="Status"
               render={(s) => {
-                console.log("here :::::", s);
                 return <Text>{s ? "Approved" : "Pending"}</Text>;
               }}
             />
