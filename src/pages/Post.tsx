@@ -56,7 +56,6 @@ const Post: React.FC = () => {
       const data = res.docs.map((doc) => ({
         ...doc.data(),
       }));
-      console.log(data);
       setPosts(data as PostInterface[]);
     });
   };

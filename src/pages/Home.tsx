@@ -30,7 +30,7 @@ const Home: React.FC = () => {
   return (
     <Stack align="center" justify="center" h="100vh" flex={1} gap={0}>
       <Image src={SMITLogo} />
-      <Stack w="400px" border="1px solid lightgrey" p={30} borderRadius={10}>
+      <Stack w="400px">
         <VStack align="start">
           <Text m={0}>Email</Text>
           <Input

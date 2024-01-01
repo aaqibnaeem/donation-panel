@@ -9,9 +9,11 @@ const CustomModal: React.FC<CustomModalInterface> = ({
   children,
   title,
   isLoading,
+  width,
 }) => {
   return (
     <Modal
+      width={width && width}
       title={title}
       open={isVisible}
       onOk={handleOk}

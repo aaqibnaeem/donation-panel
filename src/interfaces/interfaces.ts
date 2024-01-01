@@ -26,4 +26,5 @@ export interface CustomModalInterface {
   children: ReactNode;
   title: string;
   isLoading?: boolean;
+  width?: string;
 }

@@ -1,37 +1,81 @@
-import { Box, Text, Heading } from "@chakra-ui/react";
+import { Box, Text, Heading, HStack, Stack } from "@chakra-ui/react";
+import { Button, message } from "antd";
+import { useEffect, useState } from "react";
+import CustomModal from "../components/CustomModal";
+import { Input } from "antd";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { db } from "../config/firebaseConfig";
+
+const { TextArea } = Input;
 
 const About = () => {
+  const [showModal, setShowModal] = useState<boolean>(false);
+  const [isUpdating, setIsUpdating] = useState<boolean>(false);
+  const [about, setAbout] = useState<string>("");
+  const [editAbout, setEditAbout] = useState<string>("");
+  useEffect(() => {
+    fetchAbout();
+  }, []);
+  const fetchAbout = async () => {
+    const data = await getDoc(doc(db, "about", "pMfBym3PFMNEDi0EB0hT"));
+    if (data.exists()) {
+      const aboutData = data.data();
+      setAbout(aboutData.about);
+    }
+  };
+
   return (
-    <Box p={6}>
-      <Heading as="h2" size="xl" mb={4}>
-        About Saylani Mass IT Training Centre
-      </Heading>
+    <Box p={6} w="full">
+      <HStack w="full" alignItems="center" justify="center">
+        <Heading as="h2" size="xl">
+          About Saylani Mass IT Training Centre
+        </Heading>
+        <Button onClick={() => setShowModal(true)}>Edit</Button>
+      </HStack>
 
-      <Text fontSize="lg" mb={4}>
-        Saylani Mass IT Training Centre is dedicated to providing high-quality
-        IT education and training to individuals seeking to enhance their skills
-        and advance their careers in the rapidly evolving technology landscape.
-      </Text>
-
-      <Text fontSize="lg" mb={4}>
-        Our mission is to empower learners with practical knowledge and hands-on
-        experience, preparing them for success in the IT industry. We believe in
-        making quality education accessible to everyone, regardless of their
-        background or previous experience.
-      </Text>
-
-      <Text fontSize="lg" mb={4}>
-        At Saylani Mass IT Training Centre, we offer a range of courses taught
-        by experienced professionals. Whether you're a beginner looking to start
-        your IT journey or an experienced professional seeking to deepen your
-        expertise, we have a program for you.
-      </Text>
-
-      <Text fontSize="lg">
-        Thank you for choosing Saylani Mass IT Training Centre as your partner
-        in learning. We are committed to your success and look forward to
-        supporting you on your educational journey.
-      </Text>
+      <Text lineHeight={3}>{about}</Text>
+      <CustomModal
+        width="800px"
+        isVisible={showModal}
+        title="Edit About"
+        handleCancel={() => setShowModal(false)}
+        handleOk={async () => {
+          setIsUpdating(true);
+          const updateRef = doc(db, "about", "pMfBym3PFMNEDi0EB0hT");
+          await updateDoc(updateRef, {
+            about: editAbout,
+          })
+            .then(() => {
+              message.success({
+                type: "success",
+                content: "Successfully updated",
+              });
+              setIsUpdating(false);
+              setShowModal(false);
+              fetchAbout();
+            })
+            .catch(() => {
+              message.error({
+                type: "error",
+                content: "Error occured in updatin.",
+              });
+              setIsUpdating(false);
+              setShowModal(false);
+              fetchAbout();
+            });
+        }}
+        isLoading={isUpdating}
+        children={
+          <Stack w="full" align="start" gap={10} mt={20}>
+            <Text m={0}>About</Text>
+            <TextArea
+              rows={20}
+              value={editAbout}
+              onChange={(e) => setEditAbout(e.target.value)}
+            />
+          </Stack>
+        }
+      />
     </Box>
   );
 };
