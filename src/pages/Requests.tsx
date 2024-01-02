@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { HStack, Stack, Text, VStack } from "@chakra-ui/react";
+import { HStack, Image, Stack, Text, VStack } from "@chakra-ui/react";
 import { Button, Table, Tabs, message } from "antd";
 import Column from "antd/es/table/Column";
 import { RequestInterface } from "../interfaces/interfaces";
@@ -17,6 +17,7 @@ import { PiHandHeartLight } from "react-icons/pi";
 
 const Requests: React.FC = () => {
   const [requests, setRequests] = useState<RequestInterface[]>();
+  const [donations, setDonations] = useState<RequestInterface[]>();
   const [isUpdating, setIsUpdating] = useState<boolean>(false);
 
   useEffect(() => {
@@ -29,6 +30,13 @@ const Requests: React.FC = () => {
       }));
       console.log(data);
       setRequests(data as RequestInterface[]);
+    });
+    await getDocs(collection(db, "donations")).then((res) => {
+      const data = res.docs.map((doc) => ({
+        ...doc.data(),
+      }));
+      console.log(data);
+      setDonations(data as RequestInterface[]);
     });
   };
 
@@ -153,7 +161,7 @@ const Requests: React.FC = () => {
           label: `Requests to Donate`,
           children: (
             <HStack>
-              <Stack h="90vh" w="100%" p={30} gap={10}>
+              <Stack w="100%">
                 <Stack
                   flex={1}
                   justify="start"
@@ -161,105 +169,26 @@ const Requests: React.FC = () => {
                   p={30}
                   borderRadius="10px"
                 >
-                  <Text
-                    textDecor="underline"
-                    m={1}
-                    as="h1"
-                    fontSize={32}
-                    fontWeight="bold"
-                  >
-                    All Requests
-                  </Text>
-                  <Table dataSource={requests} size="small">
-                    <Column dataIndex="fullname" title="Full name" />
-                    <Column dataIndex="address" title="address" />
-                    <Column dataIndex="cnic" title="CNIC" />
-                    <Column dataIndex="type" title="Type" />
+                  <Table dataSource={donations} size="small">
+                    <Column dataIndex="title" title="Title" />
                     <Column dataIndex="description" title="Description" />
-                    <Column dataIndex="amount" title="Amount requested" />
                     <Column
-                      dataIndex="approved_status"
-                      title="Status"
-                      render={(s) => {
-                        return <Text>{s}</Text>;
+                      dataIndex="donationImg"
+                      title="Image"
+                      render={(itm) => {
+                        console.log(itm);
+                        return (
+                          <Image
+                            src={
+                              itm ||
+                              "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSxhCCew_GXW7u917hiuIMA8tZmbCz8ajG2udmzw8NwqQ&s"
+                            }
+                            w="80px"
+                            h="80px"
+                            objectFit="contain"
+                          />
+                        );
                       }}
-                    />
-                    <Column
-                      title="Action"
-                      render={(itm) => (
-                        <HStack>
-                          <VStack>
-                            <Button
-                              loading={isUpdating}
-                              type="primary"
-                              style={{ width: "100%" }}
-                              onClick={async () => {
-                                setIsUpdating(true);
-                                console.log("handle Approve", itm);
-                                await updateDoc(doc(db, "requests", itm.id!), {
-                                  approved_status: "Approved",
-                                }).then(() => {
-                                  message.success({
-                                    type: "success",
-                                    content: "Successfully approved.",
-                                  });
-                                  fetchRequests();
-                                  setIsUpdating(false);
-                                });
-                              }}
-                            >
-                              Approve
-                            </Button>
-                            <Button
-                              loading={isUpdating}
-                              onClick={async () => {
-                                setIsUpdating(true);
-                                console.log("handle Approve", itm);
-                                await updateDoc(doc(db, "requests", itm.id!), {
-                                  approved_status: "Rejected",
-                                }).then(() => {
-                                  message.success({
-                                    type: "success",
-                                    content: "Donation request rejected.",
-                                  });
-                                  fetchRequests();
-                                  setIsUpdating(false);
-                                });
-                              }}
-                              danger
-                              style={{ width: "100%" }}
-                            >
-                              Reject
-                            </Button>
-                          </VStack>
-                          <VStack h="80px">
-                            <Button
-                              loading={isUpdating}
-                              danger
-                              type="dashed"
-                              style={{
-                                height: "100%",
-                                fontSize: 32,
-                                minWidth: 80,
-                              }}
-                              onClick={() => {
-                                console.log(itm);
-                                deleteDoc(doc(db, "requests", itm.id)).then(
-                                  () => {
-                                    message.success({
-                                      type: "success",
-                                      content: "Successfully deleted",
-                                    });
-                                    fetchRequests();
-                                  }
-                                );
-                              }}
-                            >
-                              <MdDeleteForever />
-                            </Button>
-                          </VStack>
-                        </HStack>
-                      )}
                     />
                   </Table>
                 </Stack>
